@@ -1,0 +1,87 @@
+# @param {Integer} num_courses
+# @param {Integer[][]} prerequisites
+# @return {Integer[]}
+def find_order(num_courses, prerequisites)
+    if prerequisites.length == 0
+        return (0...num_courses).to_a
+    end
+    
+    indegree_map = {}
+    outdegree_map = {}
+    uniq_courses = []
+    prerequisites.each do |course|
+        pre_requisite = course[1]
+        advance = course[0]
+        if indegree_map.has_key?(advance)
+            indegree_map[advance] << pre_requisite
+        else
+            indegree_map[advance] = [pre_requisite]
+        end
+        indegree_map[advance].uniq
+        
+        if outdegree_map.has_key?(pre_requisite)
+            outdegree_map[pre_requisite] << advance
+        else
+            outdegree_map[pre_requisite] = [advance]
+        end
+        outdegree_map[pre_requisite].uniq
+
+        uniq_courses << pre_requisite
+        uniq_courses << advance
+    end
+    uniq_courses = uniq_courses.uniq
+    
+    left_courses = uniq_courses - indegree_map.keys
+    left_courses.each do |c|
+        indegree_map[c] = []
+    end
+    
+    left_courses = uniq_courses - outdegree_map.keys
+    left_courses.each do |c|
+        outdegree_map[c] = []
+    end
+
+    
+    puts "Uniq courses"
+    print uniq_courses
+    
+    puts "\nindegree map"
+    print indegree_map
+    
+    puts "\nout degree map"
+    print outdegree_map
+    
+    result = []
+    
+    while result.length != uniq_courses.length
+        cycle = false
+        indegree_map.each do |advance, pre_requisite_arr|
+            if pre_requisite_arr.length == 0
+                cycle = false
+                result << advance
+                indegree_map.delete(advance)
+                outdegrees = outdegree_map[advance]
+                outdegrees.each do |c|
+                    indegree_map[c].delete(advance)
+                end
+                break
+            else
+                cycle = true
+            end
+        end
+        if result.length == 0 || cycle == true
+            #deadlock
+            return []
+        end
+        
+    end
+    
+    puts "\nResult"
+    print result
+    if result.length != num_courses
+        total_courses = (0...num_courses).to_a
+        bakaya_courses = total_courses - result
+        result = (bakaya_courses + result).flatten
+    end
+    return result
+end
